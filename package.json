@@ -1,0 +1,39 @@
+{
+  "name": "boomr",
+  "version": "1.0.0",
+  "description": "A Node.js beacon for collecting stats from the Navigation Timing API & Resource Timing API to a StatsD backend",
+  "main": "server.js",
+  "scripts": {
+    "coverage": "istanbul cover _mocha",
+    "eslint": "eslint --config=./.eslintrc.js *.js app/*.js test/*.js",
+    "test": "mocha test",
+    "start": "node server.js"
+  },
+  "author": "Charlie Rogers",
+  "license": "ISC",
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^2.0.0",
+    "eslint-config-iplayer-es6": "^2.3.0",
+    "eslint-plugin-mocha": "^2.2.0",
+    "istanbul": "^0.4.4",
+    "mocha": "^2.5.3",
+    "sinon": "^1.17.4"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "cluster": "^0.7.7",
+    "config": "^1.21.0",
+    "cors": "^2.7.1",
+    "express": "^4.14.0",
+    "node-statsd": "^0.1.1",
+    "os": "^0.1.1",
+    "resourcetiming-compression": "^0.3.0"
+  },
+  "spec": {
+    "requires": [
+    ]
+  }
+}

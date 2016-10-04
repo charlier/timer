@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang='en'>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv='x-ua-compatible' content='ie=edge'>
+    <title>Stats Timer</title>
+    <meta name='description' content='stats timer'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+  </head>
+  <body data-page-type='example-page'>
+    <h1>Stats Timer</h1>
+    <p>TODO: Think of a better
+      <abbr title="Three Letter Acronym">TLA</abbr>.
+      <a href='coverage/lcov-report/app/timer.js.html'>
+        Istanbul coverage reports.
+      </a>
+    </p>
+    <p>In a simple self-executing function</p>
+    <pre>
+      <script async>
+        (function(){
+          window.addEventListener('beforeunload', function (event) {
+            var timingObject = {
+              page_type: document.getElementsByTagName('body')[0].getAttribute('data-page-type')
+            };
+            if ('performance' in window) {
+              var perf = window.performance,
+                beaconUrl = 'http://localhost:7080/beacon';
+              if ('timing' in perf) {
+                var timing = perf.timing;
+                if (timing.toJSON) {
+                  timingObject.timing = timing.toJSON();
+                } else {
+                  timingObject.timing = {};
+                  for (var prop in timing) {
+                    timingObject.timing[prop] = timing[prop];
+                  }
+                }
+              }
+              if (('getEntriesByType' in perf) &&
+                (perf.getEntriesByType('resource') instanceof Array)) {
+                timingObject.resource = perf.getEntriesByType('resource');
+              }
+              if ('sendBeacon' in window.navigator) {
+                window.navigator.sendBeacon(beaconUrl,
+                  new Blob([JSON.stringify(timingObject)], {type : 'application/json'})
+                );
+              } else {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', beaconUrl, false);
+                xhr.setRequestHeader('Content-Type','application/json');
+                xhr.send(JSON.stringify(timingObject));
+                setTimeout(function() {
+                  if (xhr.status !== 204) {
+                    xhr.abort();
+                  }
+                }, 1000);
+              }
+            }
+          });
+        })();
+      </script>
+    </pre>
+
+
+    <h2>Resource Timing</h2>
+    <p><a href="https://www.w3.org/TR/beacon/#sec-sendBeacon-method">Navigator.sendBeacon()</a>,
+      used by Modern Browsers has a undefined limit of the amount of data it will send.
+      <br />
+      To get round this issue you will need to <a href="https://www.soasta.com/blog/compressing-resourcetiming/">compress</a>
+      the array of items sent.
+    </p>
+    <p>To see the current maximum beacon size on your browser configuration it's fairly painless, as shown in the example below</p>
+    <pre>
+      var url = 'http://localhost:3030';
+      var n = 0;
+      var data = new Array(n+1).join('X');
+      var limit = false;
+      while (limit === false) {
+        if (!navigator.sendBeacon(url, data)) {
+          console.log('data limit reached', data.length);
+          limit = true;
+        } else {
+          data = data.join('X');
+        }
+      }
+    </pre>
+    <p>Assuming you're using <a href="http://requirejs.org">RequireJS</a> this is a simple addition for the
+      <a href="https://www.npmjs.com/package/resourcetiming-compression">resourcetiming-compression</a> package.</p>
+    <pre>
+      <script type="text/javascript">
+        require.config({
+          "paths": {
+            compression: '/resourcetiming-compression.min'
+          }
+        });
+      </script>
+      <script async>
+        require(['compression'], function (ResourceTimingCompression) {
+          window.addEventListener('beforeunload', function (event) {
+            var timingObject = {
+              page_type: document.getElementsByTagName('body')[0].getAttribute('data-page-type')
+            };
+            if ('performance' in window) {
+              var perf = window.performance,
+                beaconUrl = 'http://localhost:7080/beacon';
+              if ('timing' in perf) {
+                var timing = perf.timing;
+                if (timing.toJSON) {
+                  timingObject.timing = timing.toJSON();
+                } else {
+                  timingObject.timing = {};
+                  for (var prop in timing) {
+                    timingObject.timing[prop] = timing[prop];
+                  }
+                }
+              }
+              if (('getEntriesByType' in perf) &&
+                (perf.getEntriesByType('resource') instanceof Array)) {
+                timingObject.resource = ResourceTimingCompression.getResourceTiming();
+              }
+              if ('sendBeacon' in window.navigator) {
+                window.navigator.sendBeacon(beaconUrl,
+                  new Blob([JSON.stringify(timingObject)], {type : 'application/json'})
+                );
+              } else {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', beaconUrl, false);
+                xhr.setRequestHeader('Content-Type','application/json');
+                xhr.send(JSON.stringify(timingObject));
+                setTimeout(function() {
+                  if (xhr.status !== 204) {
+                    xhr.abort();
+                  }
+                }, 1000);
+              }
+            }
+          });
+        })();
+      </script>
+    </pre>
+  </body>
+</html>
